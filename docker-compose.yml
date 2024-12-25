@@ -1,0 +1,32 @@
+version: "3.6"
+services:
+  traefik:
+    image: traefik:v2.3
+    command:
+      - "--configFile=/traefik/traefik.yml"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "./traefik/traefik.yml:/traefik/traefik.yml"
+      - "./traefik/acme.json:/acme.json"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  web:
+    build: .
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.rule=Host(`vsl.ce.vku.udn.vn`)"
+      - "traefik.http.routers.web.entrypoints=web"
+      - "traefik.http.routers.web-secure.rule=Host(`vsl.ce.vku.udn.vn`)"
+      - "traefik.http.routers.web-secure.entrypoints=websecure"
+      - "traefik.http.routers.web-secure.tls.certresolver=myresolver"
+    volumes:
+      - ./src:/var/www/html
+    environment:
+      - MYSQL_HOSTNAME=103.221.222.68
+      - MYSQL_ROOT_PASSWORD=t2(EDFfE~BJ,
+      - MYSQL_DATABASE=tqishhwy_vsl
+      - MYSQL_USER=tqishhwy_vsl
+      - MYSQL_PASSWORD=t2(EDFfE~BJ,

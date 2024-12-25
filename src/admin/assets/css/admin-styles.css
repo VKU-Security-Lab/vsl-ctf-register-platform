@@ -1,0 +1,118 @@
+/* admin/assets/css/admin-styles.css */
+
+/* Định dạng màu sắc cho navbar */
+.bg-purple {
+    background-color: #0069d9 !important;
+}
+
+/* Định dạng logo */
+.logo {
+    width: 50px;
+}
+
+/* Định dạng card */
+.card-header.bg-purple {
+    background-color: #0069d9 !important;
+}
+
+.card-header.text-white {
+    color: #fff !important;
+}
+
+/* Định dạng nút thêm đội mới và thêm thành viên */
+.btn-primary, .btn-success {
+    background-color: #0069d9;
+    border-color: #0069d9;
+}
+
+.btn-primary:hover, .btn-success:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+/* Định dạng bảng */
+.table th {
+    vertical-align: middle;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Định dạng nút xem và xoá */
+.btn-info {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+    border-color: #117a8b;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* Định dạng alert */
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 18px;
+    }
+
+    .navbar-text {
+        font-size: 14px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .btn-sm {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+
+    .stat-card {
+        text-align: center;
+        border-left: none;
+        border-top: 5px solid #0069d9;
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
