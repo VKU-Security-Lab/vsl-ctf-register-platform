@@ -51,10 +51,24 @@ class Database
         return $this->pdo;
     }
 
+    public function beginTransaction()
+    {
+        return $this->pdo->beginTransaction();
+    }
+
+    public function commit()
+    {
+        return $this->pdo->commit();
+    }
+
+    public function rollBack()
+    {
+        return $this->pdo->rollBack();
+    }
+
     public function close()
     {
         $this->pdo = null;
     }
-
 }
 ?>

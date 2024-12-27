@@ -121,6 +121,80 @@ if ($registration_type === 'team') {
         $pdo->rollBack();
         echo json_encode(['success' => false, 'message' => 'Đã xảy ra lỗi khi xử lý đăng ký cá nhân. Vui lòng thử lại sau.']);
     }
+} elseif ($registration_type === 'external_team') {
+    if (
+        !isset($data['external_team_name'], $data['external_school_name'], $data['external_email'], $data['external_phone'], $data['external_members']) ||
+        empty($data['external_team_name']) ||
+        empty($data['external_school_name']) ||
+        empty($data['external_email']) ||
+        empty($data['external_phone']) ||
+        empty($data['external_members'])
+    ) {
+        echo json_encode(['success' => false, 'message' => 'Vui lòng nhập đầy đủ thông tin đội khách.']);
+        exit;
+    }
+
+    $external_team_name = trim($data['external_team_name']);
+    $external_school_name = trim($data['external_school_name']);
+    $external_email = trim($data['external_email']);
+    $external_phone = trim($data['external_phone']);
+    $external_members = $data['external_members'];
+    $external_members_count = count($external_members);
+
+    if ($external_members_count < 1 || $external_members_count > 4) {
+        echo json_encode(['success' => false, 'message' => 'Số lượng thành viên không hợp lệ.']);
+        exit;
+    }
+
+    foreach ($external_members as $index => $member) {
+        if (
+            !isset($member['name'], $member['username'], $member['email']) ||
+            empty(trim($member['name'])) ||
+            empty(trim($member['username'])) ||
+            empty(trim($member['email']))
+        ) {
+            echo json_encode(['success' => false, 'message' => "Thông tin thành viên {$index} không đầy đủ."]);
+            exit;
+        }
+
+        if (!filter_var($member['email'], FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['success' => false, 'message' => "Email của thành viên {$index} không hợp lệ."]);
+            exit;
+        }
+    }
+
+    if (!preg_match('/^\+?\d{10,15}$/', $external_phone)) {
+        echo json_encode(['success' => false, 'message' => 'Số điện thoại đội khách không hợp lệ.']);
+        exit;
+    }
+
+    if (!filter_var($external_email, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['success' => false, 'message' => 'Email đội khách không hợp lệ.']);
+        exit;
+    }
+
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare("INSERT INTO external_teams (team_name, school_name, email, phone, members_count) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$external_team_name, $external_school_name, $external_email, $external_phone, $external_members_count]);
+        $external_team_id = $pdo->lastInsertId();
+
+        $stmt_member = $pdo->prepare("INSERT INTO external_members (external_team_id, name, username, email) VALUES (?, ?, ?, ?)");
+        foreach ($external_members as $member) {
+            $stmt_member->execute([
+                $external_team_id,
+                trim($member['name']),
+                trim($member['username']),
+                trim($member['email']),
+            ]);
+        }
+        $pdo->commit();
+
+        echo json_encode(['success' => true, 'message' => 'Đăng ký đội khách thành công!']);
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        echo json_encode(['success' => false, 'message' => 'Đã xảy ra lỗi khi xử lý đăng ký đội khách. Vui lòng thử lại sau.']);
+    }
 } else {
     echo json_encode(['success' => false, 'message' => 'Loại đăng ký không hợp lệ.']);
 }

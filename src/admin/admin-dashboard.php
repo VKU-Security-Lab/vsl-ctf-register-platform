@@ -5,13 +5,17 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     header("Location: index.php");
     exit;
 }
+require_once __DIR__ . '/classes/ExternalTeam.php';
 require_once __DIR__ . '/classes/Team.php';
 require_once __DIR__ . '/classes/Admin.php';
 require_once __DIR__ . '/classes/Individual.php';
 $individualObj = new Individual();
+$externalTeamObj = new ExternalTeam();
 $teamObj = new Team();
 $adminObj = new Admin();
 $search = isset($_GET['search']) ? trim($_GET['search']) : "";
+$external_search = isset($_GET['external_search']) ? trim($_GET['external_search']) : "";
+$external_teams = $externalTeamObj->getExternalTeams($external_search);
 $teams = $teamObj->getTeams($search);
 $total_teams = $teamObj->getTotalTeams();
 $total_members = $teamObj->getTotalMembers();
@@ -20,6 +24,9 @@ $recent_registrations = $teamObj->getRecentRegistrations();
 $registrations_by_month = $teamObj->getRegistrationsByMonth();
 $members_by_faculty = $teamObj->getMembersByFaculty();
 $individuals = $individualObj->getIndividuals($search);
+$total_external_teams = $externalTeamObj->getTotalExternalTeams();
+$total_external_members = $externalTeamObj->getTotalExternalMembers();
+$externalTeamObj->close();
 $teamObj->close();
 $adminObj->close();
 ?>
@@ -97,6 +104,35 @@ $adminObj->close();
     <div class="container my-4">
         <div class="row mb-4">
             <div class="col-md-3">
+                <div class="card stat-card text-white bg-secondary mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">Tổng Đội Khách</h5>
+                                <p class="card-text display-6"><?php echo $total_external_teams; ?></p>
+                            </div>
+                            <i class="fas fa-globe fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card text-white bg-info mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">Tổng Thành Viên Khách</h5>
+                                <p class="card-text display-6"><?php echo $total_external_members; ?></p>
+                            </div>
+                            <i class="fas fa-users-cog fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Add more statistics if needed -->
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-3">
                 <div class="card stat-card text-white bg-primary mb-3">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
@@ -149,7 +185,87 @@ $adminObj->close();
                 </div>
             </div>
         </div>
-
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Danh Sách Đội Khách</h2>
+            <div>
+                <button id="bulk-delete-external-btn" class="btn btn-danger me-2" disabled>
+                    <i class="fas fa-trash-alt me-2"></i>Xoá Hàng Loạt
+                </button>
+            </div>
+        </div>
+        <form class="row g-3 mb-4" method="GET" action="admin-dashboard.php">
+            <input type="hidden" name="external_search" value="<?php echo htmlspecialchars($external_search); ?>">
+            <div class="col-md-6">
+                <input type="text" class="form-control" name="external_search"
+                    placeholder="Tìm kiếm theo tên đội khách hoặc email..."
+                    value="<?php echo htmlspecialchars($external_search); ?>">
+            </div>
+            <div class="col-md-6">
+                <button type="submit" class="btn btn-secondary w-100"><i class="fas fa-search me-2"></i>Tìm
+                    Kiếm</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <form id="external-teams-form" method="POST" action="delete-external-teams.php">
+                <table id="external-teams-table" class="table table-striped table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th><input type="checkbox" id="select-all-external"></th>
+                            <th>ID</th>
+                            <th>Tên Đội Khách</th>
+                            <th>Tên Trường</th>
+                            <th>Email Đội</th>
+                            <th>Số Điện Thoại</th>
+                            <th>Số Lượng Thành Viên</th>
+                            <th>Ngày Đăng Ký</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        if (count($external_teams) > 0) {
+                            foreach ($external_teams as $team) {
+                                echo "<tr>";
+                                echo "<td><input type='checkbox' name='external_team_ids[]' value='" . htmlspecialchars($team['id']) . "' class='external-team-checkbox'></td>";
+                                echo "<td>" . htmlspecialchars($team['id']) . "</td>";
+                                echo "<td>" . htmlspecialchars($team['team_name']) . "</td>";
+                                echo "<td>" . htmlspecialchars($team['school_name']) . "</td>";
+                                echo "<td>" . htmlspecialchars($team['email']) . "</td>";
+                                echo "<td>" . htmlspecialchars($team['phone']) . "</td>";
+                                echo "<td>" . htmlspecialchars($team['members_count']) . "</td>";
+                                echo "<td>" . htmlspecialchars($team['created_at']) . "</td>";
+                                echo "<td>
+                                    <a href='view-external-team.php?id=" . urlencode($team['id']) . "' class='btn btn-info btn-sm me-2 view-external-team-btn' data-id='" . htmlspecialchars($team['id']) . "' title='Xem Chi Tiết'><i class='fas fa-eye'></i></a>
+                                    <a href='delete-external-team.php?id=" . urlencode($team['id']) . "' class='btn btn-danger btn-sm delete-external-team-btn' title='Xoá Đội Khách' onclick=\"return confirm('Bạn có chắc chắn muốn xoá đội khách này?');\"><i class='fas fa-trash-alt'></i></a>
+                                  </td>";
+                                echo "</tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='9' class='text-center'>Không có đội khách nào.</td></tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+        <div class="modal fade" id="viewExternalTeamModal" tabindex="-1" aria-labelledby="viewExternalTeamModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-purple text-white">
+                        <h5 class="modal-title" id="viewExternalTeamModalLabel">Chi Tiết Đội Khách</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Nội dung chi tiết đội khách sẽ được tải động qua AJAX -->
+                        <div id="external-team-details">
+                            <p>Đang tải...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2>Danh Sách Đội Đăng Ký</h2>
             <div>
@@ -337,6 +453,68 @@ $adminObj->close();
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/admin-scripts.js"></script>
     <script>
+        $(document).ready(function () {
+            $('#external-teams-table').DataTable({
+                // DataTables options can be added here
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json"
+                },
+                "order": [[1, "desc"]]
+            });
+
+            // Handle Select All for External Teams
+            $('#select-all-external').on('click', function () {
+                $('.external-team-checkbox').prop('checked', this.checked);
+                toggleBulkDeleteExternalButton();
+            });
+
+            // Toggle Bulk Delete Button
+            $('.external-team-checkbox').on('change', function () {
+                if ($('.external-team-checkbox:checked').length === $('.external-team-checkbox').length) {
+                    $('#select-all-external').prop('checked', true);
+                } else {
+                    $('#select-all-external').prop('checked', false);
+                }
+                toggleBulkDeleteExternalButton();
+            });
+
+            function toggleBulkDeleteExternalButton() {
+                if ($('.external-team-checkbox:checked').length > 0) {
+                    $('#bulk-delete-external-btn').prop('disabled', false);
+                } else {
+                    $('#bulk-delete-external-btn').prop('disabled', true);
+                }
+            }
+
+            // Handle Bulk Delete for External Teams
+            $('#bulk-delete-external-btn').on('click', function () {
+                if (confirm('Bạn có chắc chắn muốn xoá các đội khách đã chọn?')) {
+                    $('#external-teams-form').submit();
+                }
+            }
+
+            );
+
+            // Handle View External Team Details via AJAX
+            $('.view-external-team-btn').on('click', function (e) {
+                e.preventDefault();
+                var teamId = $(this).data('id');
+                $('#external-team-details').html('<p>Đang tải...</p>');
+                $('#viewExternalTeamModal').modal('show');
+
+                $.ajax({
+                    url: 'view-external-team.php',
+                    method: 'GET',
+                    data: { id: teamId },
+                    success: function (response) {
+                        $('#external-team-details').html(response);
+                    },
+                    error: function () {
+                        $('#external-team-details').html('<p>Đã xảy ra lỗi khi tải dữ liệu.</p>');
+                    }
+                });
+            });
+        });
         const teamsCtx = document.getElementById('teamsChart').getContext('2d');
         const teamsChart = new Chart(teamsCtx, {
             type: 'bar',

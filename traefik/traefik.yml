@@ -1,21 +1,44 @@
-api:
-  insecure: true
-  dashboard: true
-
-providers:
-  docker:
-    exposedByDefault: false
-
 entryPoints:
   web:
     address: ":80"
   websecure:
     address: ":443"
 
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    watch: true
+    exposedByDefault: false
+
 certificatesResolvers:
   myresolver:
     acme:
       email: vku.sec.lab@gmail.com
-      storage: acme.json
+      storage: /acme.json
       httpChallenge:
         entryPoint: web
+
+http:
+  routers:
+    web:
+      rule: "Host(`vsl.ce.vku.udn.vn`)"
+      entryPoints:
+        - websecure
+      service: web-service
+      tls:
+        certresolver: myresolver
+
+  services:
+    web-service:
+      loadBalancer:
+        servers:
+          - url: "http://web:80"
+
+api:
+  dashboard: true
+  insecure: false
+
+log:
+  level: INFO
+
+accessLog: {}
