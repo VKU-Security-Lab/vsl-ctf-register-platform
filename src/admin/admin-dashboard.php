@@ -104,7 +104,7 @@ $adminObj->close();
     <div class="container my-4">
         <div class="row mb-4">
             <div class="col-md-3">
-                <div class="card stat-card text-white bg-secondary mb-3">
+                <div class="card stat-card text-white bg-primary mb-3">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -313,7 +313,7 @@ $adminObj->close();
                                 echo "<td>" . htmlspecialchars($team['registration_date']) . "</td>";
                                 echo "<td>
                                         <a href='view-team.php?id=" . urlencode($team['id']) . "' class='btn btn-info btn-sm me-2 view-team-btn' data-id='" . htmlspecialchars($team['id']) . "' title='Xem Chi Tiết'><i class='fas fa-eye'></i></a>
-                                        <a href='delete-team.php?id=" . urlencode($team['id']) . "' class='btn btn-danger btn-sm delete-team-btn' title='Xoá Đội' onclick=\"return confirm('Bạn có chắc chắn muốn xoá đội này?');\"><i class='fas fa-trash-alt'></i></a>
+                                        <a href='delete-teams.php?id=" . urlencode($team['id']) . "' class='btn btn-danger btn-sm delete-team-btn' title='Xoá Đội' onclick=\"return confirm('Bạn có chắc chắn muốn xoá đội này?');\"><i class='fas fa-trash-alt'></i></a>
                                       </td>";
                                 echo "</tr>";
                             }
@@ -453,23 +453,25 @@ $adminObj->close();
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/admin-scripts.js"></script>
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             $('#external-teams-table').DataTable({
                 // DataTables options can be added here
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json"
                 },
-                "order": [[1, "desc"]]
+                "order": [
+                    [1, "desc"]
+                ]
             });
 
             // Handle Select All for External Teams
-            $('#select-all-external').on('click', function () {
+            $('#select-all-external').on('click', function() {
                 $('.external-team-checkbox').prop('checked', this.checked);
                 toggleBulkDeleteExternalButton();
             });
 
             // Toggle Bulk Delete Button
-            $('.external-team-checkbox').on('change', function () {
+            $('.external-team-checkbox').on('change', function() {
                 if ($('.external-team-checkbox:checked').length === $('.external-team-checkbox').length) {
                     $('#select-all-external').prop('checked', true);
                 } else {
@@ -487,16 +489,16 @@ $adminObj->close();
             }
 
             // Handle Bulk Delete for External Teams
-            $('#bulk-delete-external-btn').on('click', function () {
-                if (confirm('Bạn có chắc chắn muốn xoá các đội khách đã chọn?')) {
-                    $('#external-teams-form').submit();
+            $('#bulk-delete-external-btn').on('click', function() {
+                    if (confirm('Bạn có chắc chắn muốn xoá các đội khách đã chọn?')) {
+                        $('#external-teams-form').submit();
+                    }
                 }
-            }
 
             );
 
             // Handle View External Team Details via AJAX
-            $('.view-external-team-btn').on('click', function (e) {
+            $('.view-external-team-btn').on('click', function(e) {
                 e.preventDefault();
                 var teamId = $(this).data('id');
                 $('#external-team-details').html('<p>Đang tải...</p>');
@@ -505,11 +507,13 @@ $adminObj->close();
                 $.ajax({
                     url: 'view-external-team.php',
                     method: 'GET',
-                    data: { id: teamId },
-                    success: function (response) {
+                    data: {
+                        id: teamId
+                    },
+                    success: function(response) {
                         $('#external-team-details').html(response);
                     },
-                    error: function () {
+                    error: function() {
                         $('#external-team-details').html('<p>Đã xảy ra lỗi khi tải dữ liệu.</p>');
                     }
                 });
@@ -520,14 +524,14 @@ $adminObj->close();
             type: 'bar',
             data: {
                 labels: [<?php
-                $labels = [];
-                $data = [];
-                foreach ($registrations_by_month as $row) {
-                    $labels[] = 'Tháng ' . $row['month'];
-                    $data[] = $row['count'];
-                }
-                echo '"' . implode('","', $labels) . '"';
-                ?>],
+                            $labels = [];
+                            $data = [];
+                            foreach ($registrations_by_month as $row) {
+                                $labels[] = 'Tháng ' . $row['month'];
+                                $data[] = $row['count'];
+                            }
+                            echo '"' . implode('","', $labels) . '"';
+                            ?>],
                 datasets: [{
                     label: 'Số Đội Đăng Ký',
                     data: [<?php echo implode(',', $data); ?>],
@@ -539,7 +543,9 @@ $adminObj->close();
             options: {
                 responsive: true,
                 plugins: {
-                    legend: { display: false },
+                    legend: {
+                        display: false
+                    },
                     title: {
                         display: false,
                         text: 'Số Đội Đăng Ký Theo Tháng'
@@ -560,14 +566,14 @@ $adminObj->close();
             type: 'pie',
             data: {
                 labels: [<?php
-                $labels = [];
-                $data = [];
-                foreach ($members_by_faculty as $row) {
-                    $labels[] = $row['faculty'];
-                    $data[] = $row['count'];
-                }
-                echo '"' . implode('","', $labels) . '"';
-                ?>],
+                            $labels = [];
+                            $data = [];
+                            foreach ($members_by_faculty as $row) {
+                                $labels[] = $row['faculty'];
+                                $data[] = $row['count'];
+                            }
+                            echo '"' . implode('","', $labels) . '"';
+                            ?>],
                 datasets: [{
                     label: 'Số Thành Viên',
                     data: [<?php echo implode(',', $data); ?>],
@@ -595,7 +601,9 @@ $adminObj->close();
             options: {
                 responsive: true,
                 plugins: {
-                    legend: { position: 'right' },
+                    legend: {
+                        position: 'right'
+                    },
                     title: {
                         display: false,
                         text: 'Số Thành Viên Theo Khoa'
@@ -603,6 +611,35 @@ $adminObj->close();
                 }
             }
         });
+
+        function displayFormAdd() {
+            document.getElementById('team-form-popup').style.display = 'block';
+        }
+
+        async function toggleTeamForm() {
+            const data = await fetch('api/getAllTeams.php');
+            let teams = await data.json();
+            teams = [...teams.teams, ...teams.externalTeams];
+            const select = document.querySelector('select[name="team_id"]');
+            select.innerHTML = '';
+            teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team.id;
+                option.textContent = team.team_name;
+                select.appendChild(option);
+            });
+
+            var selection = document.getElementById('team-option').value;
+            var newTeamForm = document.getElementById('new-team-form');
+            var existingTeamForm = document.getElementById('existing-team-form');
+            if (selection === 'new') {
+                newTeamForm.style.display = 'block';
+                existingTeamForm.style.display = 'none';
+            } else {
+                newTeamForm.style.display = 'none';
+                existingTeamForm.style.display = 'block';
+            }
+        }
     </script>
 </body>
 

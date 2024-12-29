@@ -14,6 +14,12 @@ class Team
         $query = "INSERT INTO teams (team_name, email, phone, members_count) VALUES (?, ?, ?, ?)";
         return $this->db->execute($query, [$team_name, $email, $phone, $members_count]);
     }
+    public function getTeamByName($team_name)
+    {
+        $query = "SELECT * FROM teams WHERE team_name = ?";
+        $result = $this->db->select($query, [$team_name]);
+        return count($result) === 1 ? $result[0] : null;
+    }
     public function getTeamById($team_id)
     {
         $query = "SELECT * FROM teams WHERE id = ?";
@@ -76,6 +82,12 @@ class Team
     {
         $query = "SELECT faculty, COUNT(id) as count FROM members GROUP BY faculty";
         return $this->db->select($query);
+    }
+
+    public function addMember($team_id, $name, $username, $student_id, $email, $faculty)
+    {
+        $query = "INSERT INTO members (team_id, name, username, student_id, email, faculty) VALUES (?, ?, ?, ?, ?, ?)";
+        return $this->db->execute($query, [$team_id, $name, $username, $student_id, $email, $faculty]);
     }
 
     public function close()

@@ -1,11 +1,11 @@
 <?php
 // view-individual.php
 
-// Bắt đầu phiên làm việc và kiểm tra quyền admin
+// Start session and check admin privileges
 session_start();
 header('Content-Type: application/json');
 
-// Kiểm tra xem admin đã đăng nhập chưa
+// Check if the admin is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     echo json_encode([
         'success' => false,
@@ -14,7 +14,7 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit;
 }
 
-// Kiểm tra tham số ID
+// Validate ID parameter
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     echo json_encode([
         'success' => false,
@@ -25,7 +25,7 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $individual_id = intval($_GET['id']);
 
-// Bao gồm lớp Individual
+// Include the Individual class
 require_once __DIR__ . '/classes/Individual.php';
 
 $individualObj = new Individual();
@@ -39,7 +39,7 @@ if (!$individual) {
     exit;
 }
 
-// Tạo HTML để hiển thị chi tiết user
+// Create HTML to display the individual details
 $html = "
     <div class='row'>
         <div class='col-md-6'>
@@ -57,17 +57,46 @@ $html = "
     </div>
     <hr>
     <div class='d-flex justify-content-end'>
-        <button class='btn btn-primary me-2' id='assign-team-btn' data-id='" . htmlspecialchars($individual['id']) . "'><i class='fas fa-user-plus me-2'></i>Thêm Vào Đội</button>
+        <button class='btn btn-primary me-2' id='assign-team-btn' onclick='displayFormAdd();' data-id='" . htmlspecialchars($individual['id']) . "'><i class='fas fa-user-plus me-2'></i>Thêm Vào Đội</button>
         <button class='btn btn-secondary' data-bs-dismiss='modal'><i class='fas fa-times me-2'></i>Đóng</button>
+    </div>
+    <!-- Popup Form for Team Assignment -->
+    <div id='team-form-popup' style='display:none;'>
+        <select id='team-option' onchange='toggleTeamForm();'>
+            <option value='new'>Tạo Đội Mới</option>
+            <option value='existing'>Thêm Vào Đội Hiện Có</option>
+        </select>
+        <form id='new-team-form' style='display:none;' method='post' action='add-to-team.php?existing=false'>
+            <input type='hidden' name='individual_id' value='" . htmlspecialchars($individual['id']) . "' />
+            <select name='typeTeam'>
+                <option value='internal'>Đội Nội Bộ</option>
+                <option value='external'>Đội Ngoại Bộ</option>
+            </select>
+            <input type='text' placeholder='Tên Đội' name='team_name' />
+            <input type='number' placeholder='Số Lượng Thành Viên' name='team_size' />
+            <input type='email' placeholder='Email' name='team_email' />
+            <input type='text' placeholder='Số Điện Thoại' name='team_phone' />
+            <button type='submit'>Tạo Đội</button>
+        </form>
+        <form id='existing-team-form' style='display:none;' method='post' action='add-to-team.php?existing=true'>
+            <input type='hidden' name='individual_id' value='" . htmlspecialchars($individual['id']) . "' />
+            <select name='typeTeam'>
+                <option value='internal'>Đội Nội Bộ</option>
+                <option value='external'>Đội Ngoại Bộ</option>
+            </select>
+            <select name='team_id'>
+                <!-- Options filled by server-side logic or AJAX call -->
+            </select>
+            <button type='submit'>Thêm Vào Đội</button>
+        </form>
     </div>
 ";
 
-// Trả về phản hồi JSON
+// Return JSON response
 echo json_encode([
     'success' => true,
     'html' => $html,
 ]);
 
-// Đóng kết nối cơ sở dữ liệu nếu cần
+// Close the database connection if needed
 $individualObj->close();
-?>
